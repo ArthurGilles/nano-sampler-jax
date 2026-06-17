@@ -45,12 +45,12 @@ def _single_mala(key: jax.Array,
         sample, score, log_pdf, accepts, key = carry
         key, key_dW, key_u = random.split(key, num=3)
 
+        # Proposal
         dW = random.normal(key_dW, (sample.shape))
-
         sample_new = sample + step_size*score + jnp.sqrt(2*step_size)*dW
 
+        # Evaluate log pdf and score at new sample, compute alpha
         log_pdf_new, score_new = log_and_score(sample_new)
-
         d = sample - sample_new - step_size*score_new
 
         log_q = -1.0/(4*step_size) * jnp.sum(d**2)
@@ -58,12 +58,18 @@ def _single_mala(key: jax.Array,
 
         log_alpha = log_pdf_new - log_pdf + log_q - log_q_new
 
+        # Accept or reject
         accept_mask = jnp.log(random.uniform(key_u)) < log_alpha
 
         sample = jnp.where(accept_mask, sample_new, sample)
 
+        # Pass the score and log_pdf from one iteration to the next,
+        # to avoid recomputing them for the accepted samples
         score = jnp.where(accept_mask, score_new, score)
         log_pdf = jnp.where(accept_mask, log_pdf_new, log_pdf)
+
+        # Number of accepted samples, to compute the acceptance
+        # rate at the end of the MALA run
         accepts += accept_mask.astype(accepts.dtype)
 
         return (sample, score, log_pdf, accepts, key), sample

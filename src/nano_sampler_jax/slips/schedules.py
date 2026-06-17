@@ -3,7 +3,12 @@ from jaxtyping import Array, Float
 import equinox as eqx 
 
 class Schedule(eqx.Module):
-    """Base class for SLIPS time schedules."""
+    """
+    Base class for SLIPS time schedules, defining the alpha(t) and g(t) functions.
+    Subclass this to implement specific schedules by overriding the g(t) function.
+    Schedule objects are passed to the SLIPSParams object, 
+    which is then passed to the geom_slips function.
+    """
     def g(self, t: Float[Array, ""]) -> Float[Array, ""]:
         raise NotImplementedError
         
@@ -15,14 +20,30 @@ class Schedule(eqx.Module):
         return eqx.error_if(time_grid, time_grid[0] <= 0, "time_grid[0] must be strictly > 0")
 
 class StandardSchedule(Schedule):
-    """Asymptotic geometric schedule (Standard SLIPS)."""
+    """
+    Asymptotic geometric schedule (Standard SLIPS).
+
+    Parameters
+    ----------
+    alpha_1: float
+        alpha_1 parameter of the schedule, as defined in section 3.2 a) of the SLIPS paper.
+    """
     alpha_1: float = 1.0
     
     def g(self, t: Float[Array, ""]) -> Float[Array, ""]:
         return t ** (self.alpha_1 / 2.0)
 
 class GeomSchedule(Schedule):
-    """Non-asymptotic geometric schedule."""
+    """
+    Non-asymptotic geometric schedule.
+
+    Parameters
+    ----------
+    alpha_1: float
+        alpha_1 parameter of the schedule, as defined in section 3.2 b) of the SLIPS paper.
+    alpha_2: float
+        alpha_2 parameter of the schedule, as defined in section 3.2 b) of the SLIPS paper.
+    """
     alpha_1: float = 1.0
     alpha_2: float = 1.0
     
