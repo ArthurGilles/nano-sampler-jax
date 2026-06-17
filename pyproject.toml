@@ -4,7 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nano_sampler_jax"          
-version = "0.1.0"               
+version = "0.1.0"  
+license = { text = "MIT" }             
 authors = [
   { name="Arthur Gilles", email="arthur.gilles26@imperial.ac.uk" },
 ]
@@ -39,5 +40,5 @@ package-dir = {"" = "src"}
 [tool.setuptools.packages.find]
 where = ["src"]
 
-# license = {text = "MIT"}
+
 

@@ -3,5 +3,12 @@ venv/
 .vscode/
 .pytest_cache/
 *.pyc
+*.egg-info/
+
+# Testing and Coverage (ADD THESE)
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
 
 
