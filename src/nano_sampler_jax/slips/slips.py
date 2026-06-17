@@ -86,7 +86,7 @@ def _single_slips(key: jax.Array,
 
         # Adapt the step size of the MALA algorithm based on the acceptance rate
         step_size *= jnp.exp(params.learning_rate*(jnp.mean(accept_rate) - params.target_accept))
-        step_size = jnp.clip(step_size, a_min=params.step_min, a_max=params.step_max)
+        step_size = jnp.clip(step_size, min=params.step_min, max=params.step_max)
 
         # The denoiser is estimated not only by the last sample of the MALA chain, 
         # but by the average of all samples after the burn-in period
@@ -118,7 +118,7 @@ def _single_slips(key: jax.Array,
 
         # Adapt the step size of the MALA algorithm based on the acceptance rate
         step_size *= jnp.exp(params.learning_rate*(jnp.mean(accept_rate) - params.target_accept))
-        step_size = jnp.clip(step_size, a_min=params.step_min, a_max=params.step_max)
+        step_size = jnp.clip(step_size, min=params.step_min, max=params.step_max)
 
         # The denoiser is estimated not only by the last sample of the MALA chain, 
         # but by the average of all samples after the burn-in period

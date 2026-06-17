@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nano_sampler_jax"          
+version = "0.1.0"               
+authors = [
+  { name="Arthur Gilles", email="arthur.gilles26@imperial.ac.uk" },
+]
+description = "This library contains implementations of some papers on sampling. It can be used to benchmark other algorithms on well-known distributions."
+readme = "README.md"              
+requires-python = ">=3.11"         
+
+# Use >= for flexibility, and only include direct dependencies!
+# (I left pandas/scipy here assuming you import them directly)
+dependencies = [
+    "equinox>=0.13.0",
+    "jax>=0.4.0",
+    "jaxtyping>=0.3.0",
+    "numpy>=2.0.0",
+    "pandas>=2.0.0",
+    "scipy>=1.10.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "black>=23.0",
+    "pytest-cov>=4.1.0",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/ArthurGilles/nano-sampler-jax/"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+# license = {text = "MIT"}
+

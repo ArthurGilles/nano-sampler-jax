@@ -4,6 +4,6 @@ from .schedules import Schedule, StandardSchedule, GeomSchedule
 
 __all__ = ["slips",
            "SLIPSParams",
-           "Schedule"
+           "Schedule",
            "GeomSchedule",
            "StandardSchedule"]
