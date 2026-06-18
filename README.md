@@ -47,8 +47,14 @@ pip install -e .
 
 # Install development/testing dependencies
 pip install -e ".[dev]"
+```
 
 
+# 💻 Quickstart: Sampling with SLIPS
+
+The SLIPS algorithm relies on a predefined noise schedule and relies on MALA (Metropolis-Adjusted Langevin Algorithm) inner loops to estimate the denoiser. Here is how to sample from a custom distribution in just a few lines of code:
+
+```python
 import jax
 import jax.numpy as jnp
 from ergodix.slips import slips, SLIPSParams, GeomSchedule
@@ -78,3 +84,56 @@ batch_size = 1000
 samples = slips(key, target_dist, time_grid, batch_size, dim, params)
 
 print(f"Generated {samples.shape[0]} samples of dimension {samples.shape[1]}")
+```
+
+
+# 🗂️ Project Architecture
+
+The codebase is organized into two primary subpackages:
+
+
+1. `nano_sampler_jax.distribution`
+
+An object-oriented collection of target distributions inheriting from TargetDistribution (an equinox.Module).
+
+- Toy 2D Geometries: `Banana`, `Rings`, `Rosenbrock`
+
+- High-Dimensional Benchmarks: `Funnel` (Neal, 2003), `IsotropicGaussian`
+
+- Mixture Models: `IsotropicGMM`, `FullCovGMM`
+
+- Real-world Posteriors: `BayesianLogisticRegression` (with utility loaders for UCI datasets)
+
+You can define your own distributions by making them inherit from the `TargetDistribution` class and overiding the `__call__` method:
+
+```python
+from jaxtyping import Array, Float
+from ergodix.distributions import TargetDistribution
+
+class MyDistribution(TargetDistribution):
+    param_1: float = 0.0
+    param_2: float = 1.0
+    
+    def __call__(self, x: Float[Array, "2"]) -> Float[Array, ""]:        
+        return ...
+```
+
+2. `nano_sampler_jax.slips`
+
+The core implementation of the SLIPS algorithm.
+
+- `slips.py`: Contains the _single_slips logic and the vectorized, JIT-compiled slips wrapper. Utilizes jax.lax.scan and jax.lax.fori_loop for strict compilation.
+
+- `mala.py`: The Metropolis-Adjusted Langevin step logic used to estimate the SLIPS denoiser.
+
+- `schedules.py`: Contains `StandardSchedule` and `GeomSchedule ` definitions to construct the Signal-to-Noise Ratio (SNR) grids.
+
+- `params.py`: The `SLIPSParams` dataclass for organizing sampler hyperparameters (step sizes, burn-in ratios, chain counts).
+
+# 🧪 Running Tests
+
+The repository is fully unit-tested using pytest. The test suite validates gradients, shapes, edge-cases for schedules, and end-to-end execution of the SLIPS algorithm.
+
+```bash
+pytest tests/ -v
+```
