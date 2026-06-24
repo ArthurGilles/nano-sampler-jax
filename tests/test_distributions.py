@@ -16,6 +16,18 @@ def assert_scalar_and_finite_grad(dist, x):
     assert grad.shape == x.shape, "Gradient shape mismatch"
     assert jnp.all(jnp.isfinite(grad)), "Gradients contain NaN or Inf"
 
+def test_default_score_matches_autodiff(dummy_2d_x):
+    # The base-class score defaults to autodiff of __call__.
+    dist = Banana()
+    expected = jax.grad(dist.__call__)(dummy_2d_x)
+    assert jnp.allclose(dist.score(dummy_2d_x), expected)
+    assert jnp.all(jnp.isfinite(dist.score(dummy_2d_x)))
+
+def test_isotropic_gaussian_analytic_score(dummy_5d_x):
+    # IsotropicGaussian overrides score with a closed form; it must agree with autodiff.
+    dist = IsotropicGaussian(mean=jnp.zeros(5), std=2.0 * jnp.ones(5))
+    assert jnp.allclose(dist.score(dummy_5d_x), jax.grad(dist.__call__)(dummy_5d_x))
+
 def test_banana(dummy_2d_x):
     dist = Banana()
     assert_scalar_and_finite_grad(dist, dummy_2d_x)

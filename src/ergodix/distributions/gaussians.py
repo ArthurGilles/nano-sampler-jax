@@ -11,9 +11,13 @@ class IsotropicGaussian(TargetDistribution):
     """
     mean: Float[Array, "dim"]
     std: Float[Array, "dim"]
-    
+
     def __call__(self, x: Float[Array, "dim"]) -> Float[Array, ""]:
         return -0.5 * jnp.sum(((x - self.mean) / self.std)**2)
+
+    def score(self, x: Float[Array, "dim"]) -> Float[Array, "dim"]:
+        # Closed-form score of an isotropic Gaussian, faster than autodiff.
+        return -(x - self.mean) / self.std**2
 
 
 

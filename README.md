@@ -31,6 +31,7 @@ Below is an example of the SLIPS algorithm successfully capturing the highly mul
 * **Modular Schedules**: Implement arbitrary noising schedules easily by subclassing the `Schedule` Equinox module.
 * **Robust Distribution Library**: Includes challenging benchmark distributions like Funnel, Banana, Rings, Rosenbrock, and high-dimensional Bayesian Logistic Regression (on UCI Sonar and Ionosphere datasets).
 * **Strong Typing**: Uses `jaxtyping` extensively for clear, reliable array shapes and types.
+* **Built-in Visualization**: Animate samples and particles as they converge over time — in 1D/2D, as N-dimensional projections, or several runs side by side — and export to GIF with `ergodix.visuals`.
 
 ---
 
@@ -87,9 +88,56 @@ print(f"Generated {samples.shape[0]} samples of dimension {samples.shape[1]}")
 ```
 
 
+# 🎬 Visualizing the Sampler
+
+Running SLIPS with `return_history=True` returns the full trajectory of both the **samples**
+(`Y_hist`) and the internal **MALA particles** (`X_hist`). The `ergodix.visuals` subpackage turns
+these into animations — optionally with the target density overlaid (normalized to total mass 1)
+and optionally saved as a GIF.
+
+```python
+import jax
+import jax.numpy as jnp
+from ergodix.slips import slips, SLIPSParams, GeomSchedule
+from ergodix.distributions import IsotropicGMM
+from ergodix.visuals import animate_samples
+
+# A bimodal target distribution
+key = jax.random.PRNGKey(0)
+dim = 2
+target = IsotropicGMM(
+    weights=jnp.array([0.5, 0.5]),
+    means=jnp.array([[-2.5, 0.0], [2.5, 0.0]]),
+    variances=jnp.array([0.25, 0.25]),
+)
+
+schedule = GeomSchedule()
+time_grid = schedule.get_snr_grid(t_0=0.1, t_end=0.9, steps=40)
+
+# return_history=True -> (samples, Y_hist, X_hist)
+params = SLIPSParams(sigma=1.0, schedule=schedule, return_history=True)
+_, y_hist, x_hist = slips(key, target, time_grid, 300, dim, params)
+
+# Samples (left) and particles (right) converging onto the target's level lines,
+# saved as a GIF.
+animate_samples(
+    y_hist, pdf=target, particles=x_hist, time_grid=time_grid, save_path="slips.gif"
+)
+```
+
+The subpackage exposes three functions:
+
+* `animate_samples` — animate 1D/2D samples over time, with an optional pdf overlay and an optional particle panel.
+* `animate_projection` — project N-dimensional samples onto a line or plane, then animate.
+* `compare_samples` — compare several runs side by side, with time advancing at the same speed for all of them.
+
+See [`src/ergodix/visuals/README.md`](src/ergodix/visuals/README.md) for more examples.
+
+---
+
 # 🗂️ Project Architecture
 
-The codebase is organized into two primary subpackages:
+The codebase is organized into three primary subpackages:
 
 
 1. `nano_sampler_jax.distribution`
@@ -129,6 +177,18 @@ The core implementation of the SLIPS algorithm.
 - `schedules.py`: Contains `StandardSchedule` and `GeomSchedule ` definitions to construct the Signal-to-Noise Ratio (SNR) grids.
 
 - `params.py`: The `SLIPSParams` dataclass for organizing sampler hyperparameters (step sizes, burn-in ratios, chain counts).
+
+3. `ergodix.visuals`
+
+Animation utilities to visualize sampler output over time (built on `matplotlib`, a core dependency).
+
+- `samples.py`: `animate_samples` — animates 1D/2D samples over time, with an optional pdf overlay (normalized to mass 1) and an optional second panel for the SLIPS particles (`X_hist`).
+
+- `projection.py`: `animate_projection` — projects N-dimensional samples onto a user-provided line or plane before animating.
+
+- `comparison.py`: `compare_samples` — compares several sample sets (or `(samples, particles)` pairs) side by side, driven by a single shared time clock.
+
+All three return a `matplotlib.animation.FuncAnimation` and can export a GIF (or MP4) through `save_path`. See [`src/ergodix/visuals/README.md`](src/ergodix/visuals/README.md) for runnable examples.
 
 # 🧪 Running Tests
 

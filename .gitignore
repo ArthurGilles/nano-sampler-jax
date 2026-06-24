@@ -5,9 +5,11 @@ venv/
 *.pyc
 *.egg-info/
 
-# Testing and Coverage (ADD THESE)
+compiled_cache/
 .pytest_cache/
 .coverage
+dippax/
+tests/test_dippax.py
 htmlcov/
 coverage.xml
 
